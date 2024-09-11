@@ -53,9 +53,6 @@ public class SnakeObj {
 
     public boolean isEat(double foodX, double foodY) {
         PositionObj head = bodyList.get(0);
-//        Bukkit.getLogger().info(
-//                "head.x: " + (int)head.x + " head.y: " + (int)head.y + " foodX: " + (int)foodX + " foodY: " + (int)foodY
-//        );
         return (int) head.x == (int) foodX && (int) head.y == (int) foodY;
     }
 
@@ -70,10 +67,10 @@ public class SnakeObj {
                 newTail.y++;
                 break;
             case LEFT:
-                newTail.x++;
+                newTail.x--;
                 break;
             case RIGHT:
-                newTail.x--;
+                newTail.x++;
                 break;
         }
         bodyList.add(newTail);
