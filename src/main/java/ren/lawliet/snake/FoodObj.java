@@ -13,8 +13,8 @@ public record FoodObj(PositionObj position) {
 
     public void generate(int frontierX, int frontierZ) {
         Random random = new Random();
-        position.setX(random.nextDouble(frontierX - 1));
-        position.setY(random.nextDouble(frontierZ - 1));
+        position.setX(random.nextDouble(frontierX));
+        position.setY(random.nextDouble(frontierZ));
     }
 
     @Override

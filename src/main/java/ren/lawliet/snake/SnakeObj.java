@@ -76,9 +76,9 @@ public class SnakeObj {
         bodyList.add(newTail);
     }
 
-    public boolean isDead(double gameWidth, double gameHeight) {
+    public boolean isDead(double gameWidth, double gameHeight,PositionObj gamePos) {
         PositionObj head = bodyList.get(0);
-        if (head.x >= gameWidth || head.y >= gameHeight) {
+        if (head.x >= gameWidth || head.y >= gameHeight || head.x <= gamePos.x || head.y <= gamePos.y) {
             return true;
         }
         for (int i = 1; i < bodyList.size(); i++) {
@@ -104,5 +104,9 @@ public class SnakeObj {
                 "bodyList=" + bodyList +
                 ", direction=" + direction +
                 '}';
+    }
+
+    public PositionObj getHead() {
+        return bodyList.get(0);
     }
 }
