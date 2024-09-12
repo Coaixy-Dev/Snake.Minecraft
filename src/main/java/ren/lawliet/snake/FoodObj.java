@@ -9,21 +9,12 @@ import java.util.Random;
  **/
 
 
-public class FoodObj {
-    private final PositionObj position;
-
-    public FoodObj(PositionObj position) {
-        this.position = position;
-    }
+public record FoodObj(PositionObj position) {
 
     public void generate(int frontierX, int frontierZ) {
         Random random = new Random();
         position.setX(random.nextDouble(frontierX - 1));
         position.setY(random.nextDouble(frontierZ - 1));
-    }
-
-    public PositionObj getPosition() {
-        return position;
     }
 
     @Override

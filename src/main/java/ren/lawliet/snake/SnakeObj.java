@@ -11,7 +11,7 @@ import java.util.ArrayList;
  */
 
 public class SnakeObj {
-    private ArrayList<PositionObj> bodyList = new ArrayList<>();
+    private final ArrayList<PositionObj> bodyList = new ArrayList<>();
     private Direction direction;
 
     public SnakeObj(PositionObj headPosition) {

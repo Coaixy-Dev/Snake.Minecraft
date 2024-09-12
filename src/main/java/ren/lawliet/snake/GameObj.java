@@ -1,6 +1,5 @@
 package ren.lawliet.snake;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -98,7 +97,7 @@ public class GameObj {
         blockClear();
         snake.move();
         blockGenerate();
-        if (snake.isEat(food.getPosition().x + gamePos.x,food.getPosition().y + gamePos.y)) {
+        if (snake.isEat(food.position().x + gamePos.x,food.position().y + gamePos.y)) {
             snake.grow();
             food.generate(gameWidth, gameHeight);
             player.sendMessage("Score: " + snake.getBodyList().size());
@@ -115,8 +114,8 @@ public class GameObj {
             location.getBlock().setType(org.bukkit.Material.GOLD_BLOCK);
         }
         Location foodLocation = new Location(player.getWorld(),
-                food.getPosition().x + gamePos.x,
-                food.getPosition().y + gamePos.y,
+                food.position().x + gamePos.x,
+                food.position().y + gamePos.y,
                 platformLineZ);
         foodLocation.getBlock().setType(org.bukkit.Material.DIAMOND_BLOCK);
     }
