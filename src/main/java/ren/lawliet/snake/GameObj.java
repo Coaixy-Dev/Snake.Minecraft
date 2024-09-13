@@ -1,9 +1,15 @@
 package ren.lawliet.snake;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author Coaixy
@@ -21,6 +27,7 @@ public class GameObj {
     private boolean isOver = false;
     private final Player player;
     private double platformLineZ = 0.0;
+    private File datasetsFile;
 
     public GameObj(int gameWidth, int gameHeight, Location gamePosition, Player player) {
         this.gameWidth = gameWidth - 1;
@@ -44,7 +51,7 @@ public class GameObj {
         player.teleport(location.clone().add(0, 0, -15));
     }
 
-    private void changeDirection() {
+    private void changeDirection(Player player) {
         int amount = player.getInventory().getItemInMainHand().getAmount();
         switch (amount) {
             case 2:
@@ -60,7 +67,7 @@ public class GameObj {
                 changeDirection(Direction.UP);
                 break;
         }
-
+        saveData(datasetsFile);
     }
 
     private void changeDirection(Direction direction) {
@@ -79,6 +86,7 @@ public class GameObj {
     }
 
     public void start(Snake pluginInstance) {
+        datasetsFile = new File(pluginInstance.getDataFolder(), "datasets.txt");
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -87,7 +95,7 @@ public class GameObj {
                     cancel();
                     return;
                 }
-                changeDirection();
+                changeDirection(player);
                 update(player);
             }
         }.runTaskTimer(pluginInstance, 0, 6);
@@ -104,6 +112,64 @@ public class GameObj {
         if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
             isOver = true;
         }
+    }
+
+    private void saveData(File file) {
+        try {
+            double[] inputs = generateInputs();
+            double[] outputs = generateOutputs();
+            System.out.println(Arrays.toString(inputs));
+            System.out.println(Arrays.toString(outputs));
+            DataSets.writeNewData(inputs, outputs, file);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private double[] generateOutputs() {
+        double[] output = new double[4];
+        switch (snake.getDirection()) {
+            case UP -> output[0] = 1;
+            case DOWN -> output[1] = 1;
+            case LEFT -> output[2] = 1;
+            case RIGHT -> output[3] = 1;
+        }
+        return output;
+    }
+
+    private double[] generateInputs() {
+        double[] input = new double[8];
+        switch (snake.getDirection()) {
+            case UP -> {
+                input[0] = 1;
+                input[1] = 0;
+                input[2] = 0;
+                input[3] = 0;
+            }
+            case DOWN -> {
+                input[0] = 0;
+                input[1] = 1;
+                input[2] = 0;
+                input[3] = 0;
+            }
+            case LEFT -> {
+                input[0] = 0;
+                input[1] = 0;
+                input[2] = 1;
+                input[3] = 0;
+            }
+            case RIGHT -> {
+                input[0] = 0;
+                input[1] = 0;
+                input[2] = 0;
+                input[3] = 1;
+            }
+        }
+        input[4] = snake.getHead().x;
+        input[5] = snake.getHead().y;
+        input[6] = food.position().x + gamePos.x;
+        input[7] = food.position().y + gamePos.y;
+        return input;
     }
 
     private void blockGenerate() {
