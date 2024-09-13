@@ -7,13 +7,15 @@ package ren.lawliet.snake;
  **/
 
 
+import org.bukkit.Bukkit;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 public class QLearningSnake {
 
-    private Map<StateActionPair, Double> qTable;
+    private Map<String, Double> qTable;
     private double learningRate;
     private double discountFactor;
     private double explorationRate;
@@ -41,19 +43,21 @@ public class QLearningSnake {
 
     public void updateQValue(State state, Direction action, double reward, State nextState) {
         StateActionPair saPair = new StateActionPair(state, action);
-        double oldQValue = qTable.getOrDefault(saPair, 0.0);
-        double bestNextQValue = qTable.getOrDefault(new StateActionPair(nextState, getBestAction(nextState)), 0.0);
+        double oldQValue = qTable.getOrDefault(saPair.toString(), -0.1);
+        double bestNextQValue = qTable.getOrDefault((new StateActionPair(nextState, getBestAction(nextState)).toString()), -0.1);
         double newQValue = oldQValue + learningRate * (reward + discountFactor * bestNextQValue - oldQValue);
-        qTable.put(saPair, newQValue);
+        Bukkit.getLogger().info(saPair.toString());
+        Bukkit.getLogger().info(String.valueOf(reward));
+        Bukkit.getLogger().info("oldQValue: " + oldQValue + " bestNextQValue: " + bestNextQValue + " newQValue: " + newQValue);
+        qTable.put(saPair.toString(), newQValue);
     }
 
     private Direction getBestAction(State state) {
         Direction bestAction = Direction.UP;
         double bestValue = Double.NEGATIVE_INFINITY;
-
         for (Direction action : Direction.values()) {
             StateActionPair saPair = new StateActionPair(state, action);
-            double qValue = qTable.getOrDefault(saPair, 0.0);
+            double qValue = qTable.getOrDefault(saPair.toString(), -0.1);
             if (qValue > bestValue) {
                 bestValue = qValue;
                 bestAction = action;

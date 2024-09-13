@@ -31,4 +31,12 @@ public class StateActionPair {
     public int hashCode() {
         return Objects.hash(state, action);
     }
+
+    @Override
+    public String toString() {
+        return "StateActionPair{" +
+                "state=" + state +
+                ", action=" + action +
+                '}';
+    }
 }

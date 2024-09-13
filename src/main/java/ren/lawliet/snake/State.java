@@ -11,18 +11,18 @@ import java.util.Objects;
 
 public class State {
 
-    private double snakeHeadX; // 蛇头X坐标
-    private double snakeHeadY; // 蛇头Y坐标
-    private double foodX; // 食物X坐标
-    private double foodY; // 食物Y坐标
-    private Direction currentDirection; // 当前方向
-    private double distanceToWallUp; // 到上方墙壁的距离
-    private double distanceToWallDown; // 到下方墙壁的距离
-    private double distanceToWallLeft; // 到左侧墙壁的距离
-    private double distanceToWallRight; // 到右侧墙壁的距离
+    private int snakeHeadX;
+    private int snakeHeadY;
+    private int foodX;
+    private int foodY;
+    private Direction currentDirection;
+    private int distanceToWallUp;
+    private int distanceToWallDown;
+    private int distanceToWallLeft;
+    private int distanceToWallRight;
 
-    public State(double snakeHeadX, double snakeHeadY, double foodX, double foodY, Direction currentDirection,
-                 double distanceToWallUp, double distanceToWallDown, double distanceToWallLeft, double distanceToWallRight) {
+    public State(int snakeHeadX, int snakeHeadY, int foodX, int foodY, Direction currentDirection,
+                 int distanceToWallUp, int distanceToWallDown, int distanceToWallLeft, int distanceToWallRight) {
         this.snakeHeadX = snakeHeadX;
         this.snakeHeadY = snakeHeadY;
         this.foodX = foodX;
@@ -70,35 +70,35 @@ public class State {
                 '}';
     }
 
-    public double getSnakeHeadX() {
+    public int getSnakeHeadX() {
         return snakeHeadX;
     }
 
-    public void setSnakeHeadX(double snakeHeadX) {
+    public void setSnakeHeadX(int snakeHeadX) {
         this.snakeHeadX = snakeHeadX;
     }
 
-    public double getSnakeHeadY() {
+    public int getSnakeHeadY() {
         return snakeHeadY;
     }
 
-    public void setSnakeHeadY(double snakeHeadY) {
+    public void setSnakeHeadY(int snakeHeadY) {
         this.snakeHeadY = snakeHeadY;
     }
 
-    public double getFoodX() {
+    public int getFoodX() {
         return foodX;
     }
 
-    public void setFoodX(double foodX) {
+    public void setFoodX(int foodX) {
         this.foodX = foodX;
     }
 
-    public double getFoodY() {
+    public int getFoodY() {
         return foodY;
     }
 
-    public void setFoodY(double foodY) {
+    public void setFoodY(int foodY) {
         this.foodY = foodY;
     }
 
@@ -110,38 +110,36 @@ public class State {
         this.currentDirection = currentDirection;
     }
 
-    public double getDistanceToWallUp() {
+    public int getDistanceToWallUp() {
         return distanceToWallUp;
     }
 
-    public void setDistanceToWallUp(double distanceToWallUp) {
+    public void setDistanceToWallUp(int distanceToWallUp) {
         this.distanceToWallUp = distanceToWallUp;
     }
 
-    public double getDistanceToWallDown() {
+    public int getDistanceToWallDown() {
         return distanceToWallDown;
     }
 
-    public void setDistanceToWallDown(double distanceToWallDown) {
+    public void setDistanceToWallDown(int distanceToWallDown) {
         this.distanceToWallDown = distanceToWallDown;
     }
 
-    public double getDistanceToWallLeft() {
+    public int getDistanceToWallLeft() {
         return distanceToWallLeft;
     }
 
-    public void setDistanceToWallLeft(double distanceToWallLeft) {
+    public void setDistanceToWallLeft(int distanceToWallLeft) {
         this.distanceToWallLeft = distanceToWallLeft;
     }
 
-    public double getDistanceToWallRight() {
+    public int getDistanceToWallRight() {
         return distanceToWallRight;
     }
 
-    public void setDistanceToWallRight(double distanceToWallRight) {
+    public void setDistanceToWallRight(int distanceToWallRight) {
         this.distanceToWallRight = distanceToWallRight;
     }
-
-    // Getters and setters 可以根据需要添加
 }
 

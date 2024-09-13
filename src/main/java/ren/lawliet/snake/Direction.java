@@ -12,4 +12,14 @@ public enum Direction {
     public static Direction randomDirection() {
         return values()[(int) (Math.random() * values().length)];
     }
+
+    @Override
+    public String toString() {
+        return switch (this) {
+            case UP -> "UP";
+            case DOWN -> "DOWN";
+            case LEFT -> "LEFT";
+            case RIGHT -> "RIGHT";
+        };
+    }
 }

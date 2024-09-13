@@ -53,7 +53,7 @@ public class GameObj {
         food.generate(gameWidth, gameHeight);
         player.teleport(location.clone().add(0, 0, -15));
 
-        this.qLearning = new QLearningSnake(0.1, 0.9, 0.5);
+        this.qLearning = new QLearningSnake(0.01, 0.9, 0.5);
         this.currentState = getCurrentState();
         epoch = 1;
     }
@@ -68,24 +68,24 @@ public class GameObj {
     }
 
     private State getCurrentState() {
-        double snakeHeadX; // 蛇头X坐标
-        double snakeHeadY; // 蛇头Y坐标
-        double foodX; // 食物X坐标
-        double foodY; // 食物Y坐标
+        int snakeHeadX; // 蛇头X坐标
+        int snakeHeadY; // 蛇头Y坐标
+        int foodX; // 食物X坐标
+        int foodY; // 食物Y坐标
         Direction currentDirection; // 当前方向
-        double distanceToWallUp; // 到上方墙壁的距离
-        double distanceToWallDown; // 到下方墙壁的距离
-        double distanceToWallLeft; // 到左侧墙壁的距离
-        double distanceToWallRight; // 到右侧墙壁的距离
-        snakeHeadX = snake.getHead().x;
-        snakeHeadY = snake.getHead().y;
-        foodX = food.position().x + gamePos.x;
-        foodY = food.position().y + gamePos.y;
+        int distanceToWallUp; // 到上方墙壁的距离
+        int distanceToWallDown; // 到下方墙壁的距离
+        int distanceToWallLeft; // 到左侧墙壁的距离
+        int distanceToWallRight; // 到右侧墙壁的距离
+        snakeHeadX = (int) snake.getHead().x;
+        snakeHeadY = (int) snake.getHead().y;
+        foodX = (int) (food.position().x + gamePos.x);
+        foodY = (int) (food.position().y + gamePos.y);
         currentDirection = snake.getDirection();
-        distanceToWallUp = gamePos.y + gameHeight - snakeHeadY;
-        distanceToWallDown = snakeHeadY - gamePos.y;
-        distanceToWallLeft = snakeHeadX - gamePos.x;
-        distanceToWallRight = gamePos.x + gameWidth - snakeHeadX;
+        distanceToWallUp = (int) (gamePos.y + gameHeight - snakeHeadY);
+        distanceToWallDown = (int) (snakeHeadY - gamePos.y);
+        distanceToWallLeft = (int) (snakeHeadX - gamePos.x);
+        distanceToWallRight = (int) (gamePos.x + gameWidth - snakeHeadX);
         State state = new State(snakeHeadX, snakeHeadY, foodX, foodY, currentDirection,
                 distanceToWallUp, distanceToWallDown, distanceToWallLeft, distanceToWallRight);
 //        System.out.println(state);
@@ -149,48 +149,63 @@ public class GameObj {
 //                changeDirection(player);
                 update(player);
             }
-        }.runTaskTimer(pluginInstance, 0, 3);
+        }.runTaskTimer(pluginInstance, 0, 1);
     }
 
     public void update(Player player) {
-        currentState = getCurrentState();
+        // 选择动作
         Direction action = qLearning.chooseAction(currentState);
+
+        // 根据动作改变蛇的方向
         changeDirection(action);
+
+        // 更新蛇的位置
         snake.move();
+
+        // 获取下一个状态
         State nextState = getCurrentState();
+
+        // 计算奖励
         double reward = calculateReward(nextState);
+
+        // 更新食物和障碍物
         blockGenerate();
         if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
             snake.grow();
             food.generate(gameWidth, gameHeight);
-            player.sendMessage("Score: " + snake.getBodyList().size());
         }
+
+        // 检查蛇是否死亡
         if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
             isOver = true;
         }
+
+        // 在currentState更新为nextState之前更新Q值
         qLearning.updateQValue(currentState, action, reward, nextState);
+
+        // 将当前状态更新为下一状态
         currentState = nextState;
     }
 
     private double calculateReward(State nextState) {
         if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
-            return 60;
+            return 1000;
         }
         if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
-            return -40;
+            return -500;
         }
         double lastRelativeDistance = Math.sqrt(
-                Math.pow(currentState.getSnakeHeadX() - currentState.getFoodX(), 2) +
-                        Math.pow(currentState.getSnakeHeadY() - currentState.getFoodY(), 2)
+                Math.pow(currentState.getSnakeHeadX() - currentState.getFoodX() - gamePos.x, 2) +
+                        Math.pow(currentState.getSnakeHeadY() - currentState.getFoodY() - gamePos.y, 2)
         );
         double nowRelativeDistance = Math.sqrt(
-                Math.pow(nextState.getSnakeHeadX() - nextState.getFoodX(), 2) +
-                        Math.pow(nextState.getSnakeHeadY() - nextState.getFoodY(), 2)
+                Math.pow(nextState.getSnakeHeadX() - nextState.getFoodX() - gamePos.x, 2) +
+                        Math.pow(nextState.getSnakeHeadY() - nextState.getFoodY() - gamePos.y, 2)
         );
         if (lastRelativeDistance > nowRelativeDistance) {
-            return 10;
+            return 50;
         } else {
-            return -10;
+            return -100;
         }
     }
 
