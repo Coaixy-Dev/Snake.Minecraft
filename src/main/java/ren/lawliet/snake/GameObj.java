@@ -28,6 +28,9 @@ public class GameObj {
     private final Player player;
     private double platformLineZ = 0.0;
     private File datasetsFile;
+    private QLearningSnake qLearning;
+    private State currentState;
+    private long epoch;
 
     public GameObj(int gameWidth, int gameHeight, Location gamePosition, Player player) {
         this.gameWidth = gameWidth - 1;
@@ -49,6 +52,44 @@ public class GameObj {
         snake.setHead(new PositionObj(x, y));
         food.generate(gameWidth, gameHeight);
         player.teleport(location.clone().add(0, 0, -15));
+
+        this.qLearning = new QLearningSnake(0.1, 0.9, 0.5);
+        this.currentState = getCurrentState();
+        epoch = 1;
+    }
+
+    private void newGame() {
+        snake.getBodyList().clear();
+        snake.getBodyList().add(new PositionObj(gamePos.x + (double) gameWidth / 2, gamePos.y + (double) gameHeight / 2));
+        snake.setDirection(Direction.RIGHT);
+        food.generate(gameWidth, gameHeight);
+        blockGenerate();
+        isOver = false;
+    }
+
+    private State getCurrentState() {
+        double snakeHeadX; // 蛇头X坐标
+        double snakeHeadY; // 蛇头Y坐标
+        double foodX; // 食物X坐标
+        double foodY; // 食物Y坐标
+        Direction currentDirection; // 当前方向
+        double distanceToWallUp; // 到上方墙壁的距离
+        double distanceToWallDown; // 到下方墙壁的距离
+        double distanceToWallLeft; // 到左侧墙壁的距离
+        double distanceToWallRight; // 到右侧墙壁的距离
+        snakeHeadX = snake.getHead().x;
+        snakeHeadY = snake.getHead().y;
+        foodX = food.position().x + gamePos.x;
+        foodY = food.position().y + gamePos.y;
+        currentDirection = snake.getDirection();
+        distanceToWallUp = gamePos.y + gameHeight - snakeHeadY;
+        distanceToWallDown = snakeHeadY - gamePos.y;
+        distanceToWallLeft = snakeHeadX - gamePos.x;
+        distanceToWallRight = gamePos.x + gameWidth - snakeHeadX;
+        State state = new State(snakeHeadX, snakeHeadY, foodX, foodY, currentDirection,
+                distanceToWallUp, distanceToWallDown, distanceToWallLeft, distanceToWallRight);
+//        System.out.println(state);
+        return state;
     }
 
     private void changeDirection(Player player) {
@@ -91,18 +132,33 @@ public class GameObj {
             @Override
             public void run() {
                 if (isOver) {
-                    player.sendMessage("Game Over!");
-                    cancel();
-                    return;
+                    Bukkit.getServer().broadcastMessage("Learning finished! - " + epoch + " - " + snake.getBodyList().size());
+                    newGame();
+                    epoch++;
                 }
-                changeDirection(player);
+                if (epoch % 100 == 0){
+                    qLearning.setExplorationRate(qLearning.getExplorationRate() * 0.9);
+                }
+                Player player1 = Bukkit.getOfflinePlayers()[0].getPlayer();
+                if (player1 != null) {
+                    if (player1.getInventory().getItemInMainHand().getAmount() == 64) {
+                        cancel();
+                        return;
+                    }
+                }
+//                changeDirection(player);
                 update(player);
             }
-        }.runTaskTimer(pluginInstance, 0, 6);
+        }.runTaskTimer(pluginInstance, 0, 3);
     }
 
     public void update(Player player) {
+        currentState = getCurrentState();
+        Direction action = qLearning.chooseAction(currentState);
+        changeDirection(action);
         snake.move();
+        State nextState = getCurrentState();
+        double reward = calculateReward(nextState);
         blockGenerate();
         if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
             snake.grow();
@@ -111,6 +167,30 @@ public class GameObj {
         }
         if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
             isOver = true;
+        }
+        qLearning.updateQValue(currentState, action, reward, nextState);
+        currentState = nextState;
+    }
+
+    private double calculateReward(State nextState) {
+        if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
+            return 60;
+        }
+        if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
+            return -40;
+        }
+        double lastRelativeDistance = Math.sqrt(
+                Math.pow(currentState.getSnakeHeadX() - currentState.getFoodX(), 2) +
+                        Math.pow(currentState.getSnakeHeadY() - currentState.getFoodY(), 2)
+        );
+        double nowRelativeDistance = Math.sqrt(
+                Math.pow(nextState.getSnakeHeadX() - nextState.getFoodX(), 2) +
+                        Math.pow(nextState.getSnakeHeadY() - nextState.getFoodY(), 2)
+        );
+        if (lastRelativeDistance > nowRelativeDistance) {
+            return 10;
+        } else {
+            return -10;
         }
     }
 
@@ -173,8 +253,8 @@ public class GameObj {
     }
 
     private void blockGenerate() {
-        for (int i = 0; i < gameWidth; i++) {
-            for (int j = 0; j < gameHeight; j++) {
+        for (int i = -3; i < gameWidth + 3; i++) {
+            for (int j = -3; j < gameHeight + 3; j++) {
                 Location location = new Location(player.getWorld(), gamePos.x + i, gamePos.y + j, platformLineZ);
                 location.getBlock().setType(Material.POLISHED_DIORITE);
             }

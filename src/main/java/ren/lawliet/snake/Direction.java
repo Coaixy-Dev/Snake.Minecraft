@@ -7,5 +7,9 @@ package ren.lawliet.snake;
  */
 
 public enum Direction {
-    UP, DOWN, LEFT, RIGHT
+    UP, DOWN, LEFT, RIGHT;
+
+    public static Direction randomDirection() {
+        return values()[(int) (Math.random() * values().length)];
+    }
 }
