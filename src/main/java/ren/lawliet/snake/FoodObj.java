@@ -11,10 +11,10 @@ import java.util.Random;
 
 public record FoodObj(PositionObj position) {
 
-    public void generate(int frontierX, int frontierZ) {
+    public void generate(int gameWeight, int gameHeight, PositionObj gamePosition) {
         Random random = new Random();
-        position.setX(random.nextDouble(frontierX));
-        position.setY(random.nextDouble(frontierZ));
+        position.x = random.nextInt(gameWeight) + (int) gamePosition.x;
+        position.y = random.nextInt(gameHeight) + (int) gamePosition.y;
     }
 
     @Override

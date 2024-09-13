@@ -7,8 +7,6 @@ package ren.lawliet.snake;
  **/
 
 
-import org.bukkit.Bukkit;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -33,30 +31,30 @@ public class QLearningSnake {
         this.explorationRate = explorationRate;
     }
 
-    public Direction chooseAction(State state) {
+    public Direction chooseAction(GameState gameState) {
         if (random.nextDouble() < explorationRate) {
             return Direction.randomDirection();
         } else {
-            return getBestAction(state);
+            return getBestAction(gameState);
         }
     }
 
-    public void updateQValue(State state, Direction action, double reward, State nextState) {
-        StateActionPair saPair = new StateActionPair(state, action);
+    public void updateQValue(GameState gameState, Direction action, double reward, GameState nextGameState) {
+        StateActionPair saPair = new StateActionPair(gameState, action);
         double oldQValue = qTable.getOrDefault(saPair.toString(), -0.1);
-        double bestNextQValue = qTable.getOrDefault((new StateActionPair(nextState, getBestAction(nextState)).toString()), -0.1);
+        double bestNextQValue = qTable.getOrDefault((new StateActionPair(nextGameState, getBestAction(nextGameState)).toString()), -0.1);
         double newQValue = oldQValue + learningRate * (reward + discountFactor * bestNextQValue - oldQValue);
-        Bukkit.getLogger().info(saPair.toString());
-        Bukkit.getLogger().info(String.valueOf(reward));
-        Bukkit.getLogger().info("oldQValue: " + oldQValue + " bestNextQValue: " + bestNextQValue + " newQValue: " + newQValue);
+//        Bukkit.getLogger().info(saPair.toString());
+//        Bukkit.getLogger().info(String.valueOf(reward));
+//        Bukkit.getLogger().info("oldQValue: " + oldQValue + " bestNextQValue: " + bestNextQValue + " newQValue: " + newQValue);
         qTable.put(saPair.toString(), newQValue);
     }
 
-    private Direction getBestAction(State state) {
+    private Direction getBestAction(GameState gameState) {
         Direction bestAction = Direction.UP;
         double bestValue = Double.NEGATIVE_INFINITY;
         for (Direction action : Direction.values()) {
-            StateActionPair saPair = new StateActionPair(state, action);
+            StateActionPair saPair = new StateActionPair(gameState, action);
             double qValue = qTable.getOrDefault(saPair.toString(), -0.1);
             if (qValue > bestValue) {
                 bestValue = qValue;

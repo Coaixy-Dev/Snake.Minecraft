@@ -8,8 +8,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * @author Coaixy
@@ -28,68 +26,60 @@ public class GameObj {
     private final Player player;
     private double platformLineZ = 0.0;
     private File datasetsFile;
-    private QLearningSnake qLearning;
-    private State currentState;
-    private long epoch;
+    private final QLearningSnake qLearning;
+    private GameState currentGameState;
+    private int threadId;
 
-    public GameObj(int gameWidth, int gameHeight, Location gamePosition, Player player) {
+    public GameObj(int gameWidth, int gameHeight, Location gamePosition, Player player, int threadId) {
+        this.threadId = threadId;
         this.gameWidth = gameWidth - 1;
         this.gameHeight = gameHeight - 1;
         double x = gamePosition.getX() + (double) gameWidth / 2;
         double y = gamePosition.getY() + (double) gameHeight / 2;
 
         platformLineZ = gamePosition.getZ();
-        Location location = new Location(
-                player.getWorld(),
-                x,
-                y,
-                platformLineZ
-        );
         this.gamePos = new PositionObj(gamePosition.getX(), gamePosition.getY());
         this.snake = new SnakeObj(new PositionObj(x, y));
-        this.food = new FoodObj(new PositionObj(x, y));
+        this.food = new FoodObj(new PositionObj(gamePosition.getX(), gamePosition.getY()));
         this.player = player;
         snake.setHead(new PositionObj(x, y));
-        food.generate(gameWidth, gameHeight);
-        player.teleport(location.clone().add(0, 0, -15));
+        food.generate(gameWidth, gameHeight, gamePos);
 
         this.qLearning = new QLearningSnake(0.01, 0.9, 0.5);
-        this.currentState = getCurrentState();
-        epoch = 1;
+        this.currentGameState = getCurrentState();
+        LearnState.epoch = 1;
     }
 
     private void newGame() {
         snake.getBodyList().clear();
         snake.getBodyList().add(new PositionObj(gamePos.x + (double) gameWidth / 2, gamePos.y + (double) gameHeight / 2));
         snake.setDirection(Direction.RIGHT);
-        food.generate(gameWidth, gameHeight);
+        food.generate(gameWidth, gameHeight, gamePos);
         blockGenerate();
         isOver = false;
     }
 
-    private State getCurrentState() {
-        int snakeHeadX; // 蛇头X坐标
-        int snakeHeadY; // 蛇头Y坐标
-        int foodX; // 食物X坐标
-        int foodY; // 食物Y坐标
-        Direction currentDirection; // 当前方向
-        int distanceToWallUp; // 到上方墙壁的距离
-        int distanceToWallDown; // 到下方墙壁的距离
-        int distanceToWallLeft; // 到左侧墙壁的距离
-        int distanceToWallRight; // 到右侧墙壁的距离
+    private GameState getCurrentState() {
+        int snakeHeadX;
+        int snakeHeadY;
+        int foodX;
+        int foodY;
+        Direction currentDirection;
+        int distanceToWallUp;
+        int distanceToWallDown;
+        int distanceToWallLeft;
+        int distanceToWallRight;
         snakeHeadX = (int) snake.getHead().x;
         snakeHeadY = (int) snake.getHead().y;
-        foodX = (int) (food.position().x + gamePos.x);
-        foodY = (int) (food.position().y + gamePos.y);
+        foodX = (int) (food.position().x);
+        foodY = (int) (food.position().y);
         currentDirection = snake.getDirection();
         distanceToWallUp = (int) (gamePos.y + gameHeight - snakeHeadY);
         distanceToWallDown = (int) (snakeHeadY - gamePos.y);
         distanceToWallLeft = (int) (snakeHeadX - gamePos.x);
         distanceToWallRight = (int) (gamePos.x + gameWidth - snakeHeadX);
-        State state = new State(snakeHeadX, snakeHeadY, foodX, foodY, currentDirection,
+        return new GameState(snakeHeadX, snakeHeadY, foodX, foodY, currentDirection,
                 distanceToWallUp, distanceToWallDown, distanceToWallLeft, distanceToWallRight);
-//        System.out.println(state);
-        return state;
     }
 
     private void changeDirection(Player player) {
@@ -132,16 +122,16 @@ public class GameObj {
             @Override
             public void run() {
                 if (isOver) {
-                    Bukkit.getServer().broadcastMessage("Learning finished! - " + epoch + " - " + snake.getBodyList().size());
                     newGame();
-                    epoch++;
+                    LearnState.epoch++;
                 }
-                if (epoch % 100 == 0){
+                if (LearnState.epoch % 500 == 0) {
                     qLearning.setExplorationRate(qLearning.getExplorationRate() * 0.9);
+                    Bukkit.getServer().broadcastMessage("Learning Epoch - " + LearnState.epoch);
                 }
-                Player player1 = Bukkit.getOfflinePlayers()[0].getPlayer();
+                Player player1 = Bukkit.getPlayer(player.getName());
                 if (player1 != null) {
-                    if (player1.getInventory().getItemInMainHand().getAmount() == 64) {
+                    if (player1.getInventory().getItemInMainHand().getType() == Material.OAK_LOG) {
                         cancel();
                         return;
                     }
@@ -154,7 +144,7 @@ public class GameObj {
 
     public void update(Player player) {
         // 选择动作
-        Direction action = qLearning.chooseAction(currentState);
+        Direction action = qLearning.chooseAction(currentGameState);
 
         // 根据动作改变蛇的方向
         changeDirection(action);
@@ -163,31 +153,32 @@ public class GameObj {
         snake.move();
 
         // 获取下一个状态
-        State nextState = getCurrentState();
+        GameState nextGameState = getCurrentState();
+        Bukkit.getLogger().info(nextGameState.toString());
 
         // 计算奖励
-        double reward = calculateReward(nextState);
+        double reward = calculateReward(nextGameState);
 
         // 更新食物和障碍物
         blockGenerate();
-        if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
+        if (snake.isEat(food.position().x, food.position().y)) {
             snake.grow();
-            food.generate(gameWidth, gameHeight);
+            food.generate(gameWidth, gameHeight, gamePos);
         }
 
         // 检查蛇是否死亡
-        if (snake.isDead(gamePos.x + gameWidth, gamePos.y + gameHeight, this.gamePos)) {
+        if (snake.isDead(gameWidth, gameHeight, this.gamePos)) {
             isOver = true;
         }
 
         // 在currentState更新为nextState之前更新Q值
-        qLearning.updateQValue(currentState, action, reward, nextState);
+        qLearning.updateQValue(currentGameState, action, reward, nextGameState);
 
         // 将当前状态更新为下一状态
-        currentState = nextState;
+        currentGameState = nextGameState;
     }
 
-    private double calculateReward(State nextState) {
+    private double calculateReward(GameState nextGameState) {
         if (snake.isEat(food.position().x + gamePos.x, food.position().y + gamePos.y)) {
             return 1000;
         }
@@ -195,12 +186,12 @@ public class GameObj {
             return -500;
         }
         double lastRelativeDistance = Math.sqrt(
-                Math.pow(currentState.getSnakeHeadX() - currentState.getFoodX() - gamePos.x, 2) +
-                        Math.pow(currentState.getSnakeHeadY() - currentState.getFoodY() - gamePos.y, 2)
+                Math.pow(currentGameState.getSnakeHeadX() - currentGameState.getFoodX(), 2) +
+                        Math.pow(currentGameState.getSnakeHeadY() - currentGameState.getFoodY(), 2)
         );
         double nowRelativeDistance = Math.sqrt(
-                Math.pow(nextState.getSnakeHeadX() - nextState.getFoodX() - gamePos.x, 2) +
-                        Math.pow(nextState.getSnakeHeadY() - nextState.getFoodY() - gamePos.y, 2)
+                Math.pow(nextGameState.getSnakeHeadX() - nextGameState.getFoodX(), 2) +
+                        Math.pow(nextGameState.getSnakeHeadY() - nextGameState.getFoodY(), 2)
         );
         if (lastRelativeDistance > nowRelativeDistance) {
             return 50;
@@ -268,10 +259,14 @@ public class GameObj {
     }
 
     private void blockGenerate() {
-        for (int i = -3; i < gameWidth + 3; i++) {
-            for (int j = -3; j < gameHeight + 3; j++) {
+        for (int i = -1; i < gameWidth + 1; i++) {
+            for (int j = -1; j < gameHeight + 1; j++) {
                 Location location = new Location(player.getWorld(), gamePos.x + i, gamePos.y + j, platformLineZ);
-                location.getBlock().setType(Material.POLISHED_DIORITE);
+                if (i == -1 || i == gameWidth || j == -1 || j == gameHeight) {
+                    location.getBlock().setType(Material.AIR);
+                } else {
+                    location.getBlock().setType(Material.POLISHED_ANDESITE);
+                }
             }
         }
 
@@ -284,8 +279,8 @@ public class GameObj {
             }
         }
         Location foodLocation = new Location(player.getWorld(),
-                food.position().x + gamePos.x,
-                food.position().y + gamePos.y,
+                food.position().x,
+                food.position().y,
                 platformLineZ);
         foodLocation.getBlock().setType(org.bukkit.Material.DIAMOND_BLOCK);
     }

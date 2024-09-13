@@ -10,11 +10,11 @@ import java.util.Objects;
 
 
 public class StateActionPair {
-    private State state;
+    private GameState gameState;
     private Direction action;
 
-    public StateActionPair(State state, Direction action) {
-        this.state = state;
+    public StateActionPair(GameState gameState, Direction action) {
+        this.gameState = gameState;
         this.action = action;
     }
 
@@ -24,18 +24,18 @@ public class StateActionPair {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         StateActionPair that = (StateActionPair) o;
-        return state.equals(that.state) && action == that.action;
+        return gameState.equals(that.gameState) && action == that.action;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(state, action);
+        return Objects.hash(gameState, action);
     }
 
     @Override
     public String toString() {
         return "StateActionPair{" +
-                "state=" + state +
+                "state=" + gameState +
                 ", action=" + action +
                 '}';
     }

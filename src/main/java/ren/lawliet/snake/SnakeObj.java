@@ -78,7 +78,7 @@ public class SnakeObj {
 
     public boolean isDead(double gameWidth, double gameHeight, PositionObj gamePos) {
         PositionObj head = bodyList.get(0);
-        if (head.x > gameWidth + 1 || head.y > gameHeight + 1 || head.x < gamePos.x || head.y < gamePos.y) {
+        if (head.x >= gamePos.x + gameWidth || head.y >= gamePos.y + gameHeight || head.x < gamePos.x || head.y < gamePos.y) {
             return true;
         }
         for (int i = 1; i < bodyList.size(); i++) {
@@ -100,10 +100,7 @@ public class SnakeObj {
 
     @Override
     public String toString() {
-        return "SnakeObj{" +
-                "bodyList=" + bodyList +
-                ", direction=" + direction +
-                '}';
+        return "SnakeObj{" + "bodyList=" + bodyList + ", direction=" + direction + '}';
     }
 
     public PositionObj getHead() {

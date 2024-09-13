@@ -9,8 +9,7 @@ package ren.lawliet.snake;
 
 import java.util.Objects;
 
-public class State {
-
+public class GameState {
     private int snakeHeadX;
     private int snakeHeadY;
     private int foodX;
@@ -21,8 +20,8 @@ public class State {
     private int distanceToWallLeft;
     private int distanceToWallRight;
 
-    public State(int snakeHeadX, int snakeHeadY, int foodX, int foodY, Direction currentDirection,
-                 int distanceToWallUp, int distanceToWallDown, int distanceToWallLeft, int distanceToWallRight) {
+    public GameState(int snakeHeadX, int snakeHeadY, int foodX, int foodY, Direction currentDirection,
+                     int distanceToWallUp, int distanceToWallDown, int distanceToWallLeft, int distanceToWallRight) {
         this.snakeHeadX = snakeHeadX;
         this.snakeHeadY = snakeHeadY;
         this.foodX = foodX;
@@ -39,14 +38,14 @@ public class State {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        State state = (State) o;
-        return snakeHeadX == state.snakeHeadX && snakeHeadY == state.snakeHeadY &&
-                foodX == state.foodX && foodY == state.foodY &&
-                currentDirection == state.currentDirection &&
-                distanceToWallUp == state.distanceToWallUp &&
-                distanceToWallDown == state.distanceToWallDown &&
-                distanceToWallLeft == state.distanceToWallLeft &&
-                distanceToWallRight == state.distanceToWallRight;
+        GameState gameState = (GameState) o;
+        return snakeHeadX == gameState.snakeHeadX && snakeHeadY == gameState.snakeHeadY &&
+                foodX == gameState.foodX && foodY == gameState.foodY &&
+                currentDirection == gameState.currentDirection &&
+                distanceToWallUp == gameState.distanceToWallUp &&
+                distanceToWallDown == gameState.distanceToWallDown &&
+                distanceToWallLeft == gameState.distanceToWallLeft &&
+                distanceToWallRight == gameState.distanceToWallRight;
     }
 
     @Override
