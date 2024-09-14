@@ -1,5 +1,7 @@
 package ren.lawliet.snake;
 
+import java.util.Objects;
+
 /**
  * @author Coaixy
  * @createTime 2024-09-10
@@ -8,6 +10,7 @@ package ren.lawliet.snake;
 
 public enum Direction {
     UP, DOWN, LEFT, RIGHT;
+
 
     public static Direction randomDirection(Direction nowDirection) {
         Direction direction = nowDirection;

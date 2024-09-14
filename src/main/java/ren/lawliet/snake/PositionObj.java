@@ -7,20 +7,28 @@ package ren.lawliet.snake;
  */
 
 public class PositionObj {
-    public double x;
-    public double y;
+    public int x;
+    public int y;
 
     public PositionObj(double x, double y) {
+        this.x = (int) x;
+        this.y = (int) y;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
         this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
         this.y = y;
-    }
-
-    public void setX(double newX) {
-        this.x = newX;
-    }
-
-    public void setY(double newY) {
-        this.y = newY;
     }
 
     @Override
