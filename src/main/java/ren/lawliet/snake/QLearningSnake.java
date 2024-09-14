@@ -33,7 +33,7 @@ public class QLearningSnake {
 
     public Direction chooseAction(GameState gameState) {
         if (random.nextDouble() < explorationRate) {
-            return Direction.randomDirection();
+            return Direction.randomDirection(gameState.getCurrentDirection());
         } else {
             return getBestAction(gameState);
         }
@@ -42,7 +42,7 @@ public class QLearningSnake {
     public void updateQValue(GameState gameState, Direction action, double reward, GameState nextGameState) {
         StateActionPair saPair = new StateActionPair(gameState, action);
         double oldQValue = qTable.getOrDefault(saPair.toString(), -0.1);
-        double bestNextQValue = qTable.getOrDefault((new StateActionPair(nextGameState, getBestAction(nextGameState)).toString()), -0.1);
+        double bestNextQValue = qTable.getOrDefault((new StateActionPair(gameState, getBestAction(gameState)).toString()), -0.1);
         double newQValue = oldQValue + learningRate * (reward + discountFactor * bestNextQValue - oldQValue);
 //        Bukkit.getLogger().info(saPair.toString());
 //        Bukkit.getLogger().info(String.valueOf(reward));

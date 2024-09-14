@@ -45,9 +45,8 @@ public class GameObj {
         snake.setHead(new PositionObj(x, y));
         food.generate(gameWidth, gameHeight, gamePos);
 
-        this.qLearning = new QLearningSnake(0.01, 0.9, 0.5);
+        this.qLearning = new QLearningSnake(0.1, 0.9, 0.8);
         this.currentGameState = getCurrentState();
-        LearnState.epoch = 1;
     }
 
     private void newGame() {
@@ -154,7 +153,7 @@ public class GameObj {
 
         // 获取下一个状态
         GameState nextGameState = getCurrentState();
-        Bukkit.getLogger().info(nextGameState.toString());
+//        Bukkit.getLogger().info(nextGameState.toString());
 
         // 计算奖励
         double reward = calculateReward(nextGameState);
